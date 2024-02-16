@@ -10,6 +10,17 @@
 
 #define DIG_IO_LIST \
     DIG_IO_ENTRY(test_in,     GPIOB, GPIO5,  PinMode::INPUT_FLT)   \
-    DIG_IO_ENTRY(led_out,     GPIOC, GPIO12, PinMode::OUTPUT)      \
+    DIG_IO_ENTRY(led_out,     GPIOE, GPIO2,  PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(led_out2,    GPIOA, GPIO5,  PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(led_out3,    GPIOC, GPIO13, PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(lin_cs,      GPIOA, GPIO8,  PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(lin_nslp,    GPIOD, GPIO11, PinMode::OUTPUT)      \
 
 #endif // PinMode_PRJ_H_INCLUDED
+
+
+    //DIG_IO_ENTRY(led_out,     GPIOE, GPIO2, PinMode::OUTPUT)      \ ZombieV
+	//DIG_IO_ENTRY(led_out2,    GPIOA, GPIO5, PinMode::OUTPUT)      \ Nucleo F103
+	//DIG_IO_ENTRY(led_out3,    GPIOC, GPIO13, PinMode::OUTPUT)      \ Bluepill
+	//DIG_IO_ENTRY(lin_nslp,    GPIOD, GPIO11, PinMode::OUTPUT)      \ ZombieV
+	//DIG_IO_ENTRY(lin_cs,      GPIOA, GPIO8,  PinMode::OUTPUT)      \ others

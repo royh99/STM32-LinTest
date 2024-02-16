@@ -46,15 +46,31 @@
    2. Temporary parameters (id = 0)
    3. Display values
  */
-//Next param id (increase when adding new parameter!): 3
+//Next param id (increase when adding new parameter!): 39
 //Next value Id: 2005
 /*              category     name         unit       min     max     default id */
 #define PARAM_LIST \
-    PARAM_ENTRY(CAT_COMM,    canspeed,    CANSPEEDS, 0,      4,      2,      1   ) \
-    PARAM_ENTRY(CAT_COMM,    canperiod,   CANPERIODS,0,      1,      0,      2   ) \
-    PARAM_ENTRY(CAT_TEST,    testparam,   "Hz",      -100,   1000,   0,      0   ) \
-    VALUE_ENTRY(opmode,      OPMODES, 2000 ) \
-    VALUE_ENTRY(version,     VERSTR,  2001 ) \
+    PARAM_ENTRY(CAT_LIN,     linbaud,  LINSPEED,  0,    1,     0,      9   ) \
+    PARAM_ENTRY(CAT_LIN,     linrxid,    "",      0,   62,    24,     10   ) \
+    PARAM_ENTRY(CAT_LIN,     lintxid,    "",      0,   62,    21,     11   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend0,   "",      0,   255,   0,      12   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend1,   "",      0,   255,   0,      13   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend2,   "",      0,   255,   0,      14   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend3,   "",      0,   255,   0,      15   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend4,   "",      0,   255,   0,      16   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend5,   "",      0,   255,   0,      17   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend6,   "",      0,   255,   0,      18   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend7,   "",      0,   255,   0,      19   ) \
+	PARAM_ENTRY(CAT_LIN,	 linavail,   "",      0,     1,   0,      20   ) \
+	VALUE_ENTRY(version,     VERSTR,  2001 ) \
+	VALUE_ENTRY(lindata0,    "",      30   ) \
+    VALUE_ENTRY(lindata1,    "",      31   ) \
+	VALUE_ENTRY(lindata2,    "",      32   ) \
+	VALUE_ENTRY(lindata3,    "",      33   ) \
+	VALUE_ENTRY(lindata4,    "",      34   ) \
+	VALUE_ENTRY(lindata5,    "",      35   ) \
+	VALUE_ENTRY(lindata6,    "",      36   ) \
+	VALUE_ENTRY(lindata7,    "",      37   ) \
     VALUE_ENTRY(lasterr,     errorListString,  2002 ) \
     VALUE_ENTRY(testain,     "dig",   2003 ) \
     VALUE_ENTRY(cpuload,     "%",     2004 )
@@ -62,12 +78,11 @@
 
 /***** Enum String definitions *****/
 #define OPMODES      "0=Off, 1=Run"
-#define CANSPEEDS    "0=125k, 1=250k, 2=500k, 3=800k, 4=1M"
-#define CANPERIODS   "0=100ms, 1=10ms"
 #define CAT_TEST     "Testing"
 #define CAT_COMM     "Communication"
-
-#define VERSTR STRINGIFY(4=VER-name)
+#define CAT_LIN      "Linbus"
+#define LINSPEED     "0=9600, 1=19200"
+#define VERSTR STRINGIFY(4=VER-Lin)
 
 /***** enums ******/
 

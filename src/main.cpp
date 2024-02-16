@@ -31,6 +31,7 @@
 #include "digio.h"
 #include "hwinit.h"
 #include "anain.h"
+#include "linbus.h"
 #include "param_save.h"
 #include "my_math.h"
 #include "errormessage.h"
@@ -43,28 +44,67 @@
 static Stm32Scheduler* scheduler;
 static CanHardware* can;
 static CanMap* canMap;
+static LinBus* lin;
+
+static void SendLin()
+{
+   static bool read = true;
+   
+	DigIo::lin_cs.Set(); // enable lin transceiver, Bluepill etc
+	//DigIo::lin_nslp.Set(); // enable lin transceiver, ZV
+
+   if (lin->HasReceived(Param::GetInt(Param::linrxid), 8))
+   {
+      uint8_t* data = lin->GetReceivedBytes();
+
+      Param::SetInt(Param::lindata0, data[0]);
+	  Param::SetInt(Param::lindata1, data[1]);
+	  Param::SetInt(Param::lindata2, data[2]);
+	  Param::SetInt(Param::lindata3, data[3]);
+	  Param::SetInt(Param::lindata4, data[4]);
+	  Param::SetInt(Param::lindata5, data[5]);
+	  Param::SetInt(Param::lindata6, data[6]);
+	  Param::SetInt(Param::lindata7, data[7]);
+	  Param::SetInt(Param::linavail, 1);
+   }
+
+   if (read)
+   {
+   lin->Request(Param::GetInt(Param::linrxid), 0, 0);
+   Param::SetInt(Param::linavail, 0);
+   }
+   else
+   {
+      uint8_t lindata[4];
+
+      lindata[0] = Param::GetInt(Param::linsend0);
+	  lindata[1] = Param::GetInt(Param::linsend1);
+	  lindata[2] = Param::GetInt(Param::linsend2);
+	  lindata[3] = Param::GetInt(Param::linsend3);
+
+      lin->Request(Param::GetInt(Param::lintxid), lindata, sizeof(lindata));
+   }
+
+   read = !read;
+}
 
 //sample 100ms task
 static void Ms100Task(void)
 {
-   //The following call toggles the LED output, so every 100ms
-   //The LED changes from on to off and back.
-   //Other calls:
-   //DigIo::led_out.Set(); //turns LED on
-   //DigIo::led_out.Clear(); //turns LED off
-   //For every entry in digio_prj.h there is a member in DigIo
-   DigIo::led_out.Toggle();
-   //The boot loader enables the watchdog, we have to reset it
-   //at least every 2s or otherwise the controller is hard reset.
+
+   DigIo::led_out.Toggle(); // ZV
+   DigIo::led_out2.Toggle(); // Nucleo F103
+   DigIo::led_out3.Toggle(); // Bluepill
+
    iwdg_reset();
    //Calculate CPU load. Don't be surprised if it is zero.
    float cpuLoad = scheduler->GetCpuLoad();
    //This sets a fixed point value WITHOUT calling the parm_Change() function
    Param::SetFloat(Param::cpuload, cpuLoad / 10);
+   
+   SendLin();
 
-   //If we chose to send CAN messages every 100 ms, do this here.
-   if (Param::GetInt(Param::canperiod) == CAN_PERIOD_100MS)
-      canMap->SendAll();
+   canMap->SendAll();
 }
 
 //sample 10 ms task
@@ -72,32 +112,21 @@ static void Ms10Task(void)
 {
    //Set timestamp of error message
    ErrorMessage::SetTime(rtc_get_counter_val());
-
-   if (DigIo::test_in.Get())
-   {
-      //Post a test error message when our test input is high
-      ErrorMessage::Post(ERR_TESTERROR);
-   }
-
-   //AnaIn::<name>.Get() returns the filtered ADC value
-   //Param::SetInt() sets an integer value.
-   Param::SetInt(Param::testain, AnaIn::test.Get());
-
-   //If we chose to send CAN messages every 10 ms, do this here.
-   if (Param::GetInt(Param::canperiod) == CAN_PERIOD_10MS)
-      canMap->SendAll();
 }
 
 /** This function is called when the user changes a parameter */
 void Param::Change(Param::PARAM_NUM paramNum)
 {
    switch (paramNum)
-   {
+   {  
+   case Param::linbaud:
+   usart_set_baudrate(USART1, Param::GetInt(Param::linbaud));
+      break;
    default:
-      //Handle general parameter changes here. Add paramNum labels for handling specific parameters
       break;
    }
 }
+
 
 //Whichever timer(s) you use for the scheduler, you have to
 //implement their ISRs here and call into the respective scheduler
@@ -110,48 +139,38 @@ extern "C" int main(void)
 {
    extern const TERM_CMD termCmds[];
 
-   clock_setup(); //Must always come first
+   clock_setup();
    rtc_setup();
-   ANA_IN_CONFIGURE(ANA_IN_LIST);
    DIG_IO_CONFIGURE(DIG_IO_LIST);
-   AnaIn::Start(); //Starts background ADC conversion via DMA
-   write_bootloader_pininit(); //Instructs boot loader to initialize certain pins
+   gpio_primary_remap(AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON, 0);
+   //write_bootloader_pininit();
+   tim_setup();
+   nvic_setup();
+   parm_load();
 
-   tim_setup(); //Sample init of a timer
-   nvic_setup(); //Set up some interrupts
-   parm_load(); //Load stored parameters
+   LinBus l(USART1, Param::GetInt(Param::linbaud));
+   lin = &l;
 
-   Stm32Scheduler s(TIM2); //We never exit main so it's ok to put it on stack
-   scheduler = &s;
-   //Initialize CAN1, including interrupts. Clock must be enabled in clock_setup()
-   Stm32Can c(CAN1, (CanHardware::baudrates)Param::GetInt(Param::canspeed));
+   Stm32Can c(CAN1, CanHardware::Baud500, false);
    CanMap cm(&c);
    CanSdo sdo(&c, &cm);
-   sdo.SetNodeId(33); //Set node ID for SDO access e.g. by wifi module
-   //store a pointer for easier access
+   sdo.SetNodeId(7); //Set node ID for SDO access e.g. by wifi module
+
    can = &c;
    canMap = &cm;
 
-   //This is all we need to do to set up a terminal on USART3
    Terminal t(USART3, termCmds);
    TerminalCommands::SetCanMap(canMap);
+   
+   Stm32Scheduler s(TIM2);
+   scheduler = &s;
 
-   //Up to four tasks can be added to each timer scheduler
-   //AddTask takes a function pointer and a calling interval in milliseconds.
-   //The longest interval is 655ms due to hardware restrictions
-   //You have to enable the interrupt (int this case for TIM2) in nvic_setup()
-   //There you can also configure the priority of the scheduler over other interrupts
    s.AddTask(Ms10Task, 10);
    s.AddTask(Ms100Task, 100);
 
-   //backward compatibility, version 4 was the first to support the "stream" command
    Param::SetInt(Param::version, 4);
-   Param::Change(Param::PARAM_LAST); //Call callback one for general parameter propagation
+   Param::Change(Param::PARAM_LAST);
 
-   //Now all our main() does is running the terminal
-   //All other processing takes place in the scheduler or other interrupt service routines
-   //The terminal has lowest priority, so even loading it down heavily will not disturb
-   //our more important processing routines.
    while(1)
    {
       char c = 0;
@@ -161,7 +180,6 @@ extern "C" int main(void)
          TerminalCommands::PrintParamsJson(&sdo, &c);
       }
    }
-
 
    return 0;
 }

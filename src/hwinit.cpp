@@ -49,7 +49,8 @@ void clock_setup(void)
    rcc_periph_clock_enable(RCC_GPIOB);
    rcc_periph_clock_enable(RCC_GPIOC);
    rcc_periph_clock_enable(RCC_GPIOD);
-   rcc_periph_clock_enable(RCC_USART3);
+   rcc_periph_clock_enable(RCC_USART1); // LIN bus
+   rcc_periph_clock_enable(RCC_USART3); // Terminal
    rcc_periph_clock_enable(RCC_TIM2); //Scheduler
    rcc_periph_clock_enable(RCC_TIM4); //Overcurrent / AUX PWM
    rcc_periph_clock_enable(RCC_DMA1);  //ADC, Encoder and UART receive
@@ -80,9 +81,9 @@ void write_bootloader_pininit()
    commands.pindef[0].port = GPIOC;
    commands.pindef[0].pin = GPIO13;
    commands.pindef[0].inout = PIN_OUT;
-   commands.pindef[0].level = 1;
+   commands.pindef[0].level = 0;
    commands.pindef[1].port = GPIOB;
-   commands.pindef[1].pin = GPIO1 | GPIO2;
+   commands.pindef[1].pin = GPIO9;
    commands.pindef[1].inout = PIN_OUT;
    commands.pindef[1].level = 0;
 

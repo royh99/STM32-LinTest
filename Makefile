@@ -19,7 +19,7 @@
 
 OUT_DIR      = obj
 PREFIX		?= arm-none-eabi
-BINARY		= stm32_yourname
+BINARY		= stm32_LinTest
 SIZE        = $(PREFIX)-size
 CC		      = $(PREFIX)-gcc
 CPP	      = $(PREFIX)-g++
@@ -37,9 +37,9 @@ CPPFLAGS    = -Og -g3 -Wall -Wextra -Iinclude/ -Ilibopeninv/include -Ilibopencm3
 LDSCRIPT	  = linker.ld
 LDFLAGS    = -Llibopencm3/lib -T$(LDSCRIPT) -march=armv7 -nostartfiles -Wl,--gc-sections,-Map,linker.map
 OBJSL		  = main.o hwinit.o stm32scheduler.o params.o terminal.o terminal_prj.o \
-             my_string.o digio.o sine_core.o my_fp.o printf.o anain.o \
+             my_string.o digio.o my_fp.o printf.o anain.o \
              param_save.o errormessage.o stm32_can.o canhardware.o canmap.o cansdo.o \
-             picontroller.o terminalcommands.o
+             terminalcommands.o linbus.o
 
 OBJS     = $(patsubst %.o,obj/%.o, $(OBJSL))
 DEPENDS  = $(patsubst %.o,obj/%.d, $(OBJSL))
