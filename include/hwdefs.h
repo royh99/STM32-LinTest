@@ -4,7 +4,7 @@
 
 //Common for any config
 
-#define RCC_CLOCK_SETUP() rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ])
+#define RCC_CLOCK_SETUP() rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE16_72MHZ])
 #define OVER_CUR_TIMER     TIM4
 #define OCURMAX            4096
 

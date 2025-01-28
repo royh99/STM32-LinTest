@@ -45,15 +45,18 @@ static Stm32Scheduler* scheduler;
 static CanHardware* can;
 static CanMap* canMap;
 static LinBus* lin;
+static bool read = true;
 
 static void SendLin()
 {
-   static bool read = true;
+   uint8_t id, len;
    
-	DigIo::lin_cs.Set(); // enable lin transceiver, Bluepill etc
-	//DigIo::lin_nslp.Set(); // enable lin transceiver, ZV
+   //static bool read = true;
+   
+	//DigIo::lin_cs.Set(); // enable lin transceiver, Bluepill etc
+	DigIo::lin_nslp.Set(); // enable lin transceiver
 
-   if (lin->HasReceived(Param::GetInt(Param::linrxid), 8))
+   if (lin->HasReceived(Param::GetInt(Param::linrxid), 8, Param::GetInt(Param::classicChksum)))
    {
       uint8_t* data = lin->GetReceivedBytes();
 
@@ -70,40 +73,59 @@ static void SendLin()
 
    if (read)
    {
-   lin->Request(Param::GetInt(Param::linrxid), 0, 0);
+   lin->Request(Param::GetInt(Param::linrxid), 0, 0, Param::GetInt(Param::classicChksum)); // true = classic chksum
    Param::SetInt(Param::linavail, 0);
    }
    else
    {
-      uint8_t lindata[4];
+      uint8_t lindata[8];
 
       lindata[0] = Param::GetInt(Param::linsend0);
-	  lindata[1] = Param::GetInt(Param::linsend1);
+      lindata[1] = Param::GetInt(Param::linsend1);
 	  lindata[2] = Param::GetInt(Param::linsend2);
 	  lindata[3] = Param::GetInt(Param::linsend3);
+ 	  lindata[4] = Param::GetInt(Param::linsend4);
+	  lindata[5] = Param::GetInt(Param::linsend5);
+	  lindata[6] = Param::GetInt(Param::linsend6);
+	  lindata[7] = Param::GetInt(Param::linsend7);
 
-      lin->Request(Param::GetInt(Param::lintxid), lindata, sizeof(lindata));
-   }
+   id = Param::GetInt(Param::lintxid);
+   len = Param::GetInt(Param::lindatalen);
+   
+   lin->Request(id, lindata, len, Param::GetInt(Param::classicChksum));
+}
 
    read = !read;
 }
-
-//sample 100ms task
-static void Ms100Task(void)
+uint8_t linrxid = 0;
+static void Ms200Task(void)
 {
-
-   DigIo::led_out.Toggle(); // ZV
-   DigIo::led_out2.Toggle(); // Nucleo F103
-   DigIo::led_out3.Toggle(); // Bluepill
+   DigIo::led_rd.Toggle();
+   //DigIo::led_out2.Toggle(); // Nucleo F103
+   //DigIo::led_out3.Toggle(); // Bluepill
+   DigIo::led_bl.Toggle();
 
    iwdg_reset();
    //Calculate CPU load. Don't be surprised if it is zero.
    float cpuLoad = scheduler->GetCpuLoad();
    //This sets a fixed point value WITHOUT calling the parm_Change() function
    Param::SetFloat(Param::cpuload, cpuLoad / 10);
-   
-   SendLin();
 
+   if (Param::GetInt(Param::IDsweep))
+   { 
+     if (lin->HasReceived(linrxid, 2, Param::GetInt(Param::classicChksum))>0) 
+     {
+         Param::SetInt(Param::IDreturned, linrxid);
+     }
+     linrxid++;
+     if (linrxid >61) linrxid = 0;
+     lin->Request(linrxid, 0, 0, Param::GetInt(Param::classicChksum)); // request is after HasReceived to allow time to receive data
+   }
+   else
+   {
+       SendLin();
+   }
+   
    canMap->SendAll();
 }
 
@@ -120,13 +142,12 @@ void Param::Change(Param::PARAM_NUM paramNum)
    switch (paramNum)
    {  
    case Param::linbaud:
-   usart_set_baudrate(USART1, Param::GetInt(Param::linbaud));
+   usart_set_baudrate(USART1, 9600 * (1 + Param::GetInt(Param::linbaud)));
       break;
    default:
       break;
    }
 }
-
 
 //Whichever timer(s) you use for the scheduler, you have to
 //implement their ISRs here and call into the respective scheduler
@@ -139,37 +160,46 @@ extern "C" int main(void)
 {
    extern const TERM_CMD termCmds[];
 
-   clock_setup();
+   clock_setup(); //Must always come first
    rtc_setup();
+   //ANA_IN_CONFIGURE(ANA_IN_LIST);
    DIG_IO_CONFIGURE(DIG_IO_LIST);
-   gpio_primary_remap(AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON, 0);
-   //write_bootloader_pininit();
-   tim_setup();
-   nvic_setup();
-   parm_load();
+   //AnaIn::Start(); //Starts background ADC conversion via DMA
+   //write_bootloader_pininit(); //Instructs boot loader to initialize certain pins
+   gpio_primary_remap(AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON, 0);//disable JTAG, enable SWD,
 
-   LinBus l(USART1, Param::GetInt(Param::linbaud));
+   //tim_setup(); //Sample init of a timer
+   nvic_setup(); //Set up some interrupts
+   parm_load(); //Load stored parameters
+   
+   LinBus l(USART1, 9600 * (1 + Param::GetInt(Param::linbaud)));
    lin = &l;
 
+   //Initialize CAN1, including interrupts. Clock must be enabled in clock_setup()
    Stm32Can c(CAN1, CanHardware::Baud500, false);
    CanMap cm(&c);
    CanSdo sdo(&c, &cm);
    sdo.SetNodeId(7); //Set node ID for SDO access e.g. by wifi module
-
+   //store a pointer for easier access
    can = &c;
    canMap = &cm;
 
+   //This is all we need to do to set up a terminal on USART3
    Terminal t(USART3, termCmds);
-   TerminalCommands::SetCanMap(canMap);
+   usart_set_baudrate(USART3, 921600); // overwrite 115200 baud rate in terminal initialisation
+   usart_set_stopbits(USART3, USART_STOPBITS_1); // overwrite stopbits
    
-   Stm32Scheduler s(TIM2);
-   scheduler = &s;
+   TerminalCommands::SetCanMap(canMap);
+   Stm32Scheduler s(TIM2); //We never exit main so it's ok to put it on stack
+   scheduler = &s;                                      
 
    s.AddTask(Ms10Task, 10);
-   s.AddTask(Ms100Task, 100);
+   s.AddTask(Ms200Task, 200);
 
+   //backward compatibility, version 4 was the first to support the "stream" command
    Param::SetInt(Param::version, 4);
-   Param::Change(Param::PARAM_LAST);
+   Param::Change(Param::PARAM_LAST); //Call callback one for general parameter propagation
+
 
    while(1)
    {

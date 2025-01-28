@@ -48,32 +48,36 @@
  */
 //Next param id (increase when adding new parameter!): 39
 //Next value Id: 2005
-/*              category     name         unit       min     max     default id */
+/*              category     name         unit   min   max   default  id */
 #define PARAM_LIST \
-    PARAM_ENTRY(CAT_LIN,     linbaud,  LINSPEED,  0,    1,     0,      9   ) \
-    PARAM_ENTRY(CAT_LIN,     linrxid,    "",      0,   62,    24,     10   ) \
-    PARAM_ENTRY(CAT_LIN,     lintxid,    "",      0,   62,    21,     11   ) \
-	PARAM_ENTRY(CAT_LIN,     linsend0,   "",      0,   255,   0,      12   ) \
-	PARAM_ENTRY(CAT_LIN,     linsend1,   "",      0,   255,   0,      13   ) \
-	PARAM_ENTRY(CAT_LIN,     linsend2,   "",      0,   255,   0,      14   ) \
-	PARAM_ENTRY(CAT_LIN,     linsend3,   "",      0,   255,   0,      15   ) \
-	PARAM_ENTRY(CAT_LIN,     linsend4,   "",      0,   255,   0,      16   ) \
-	PARAM_ENTRY(CAT_LIN,     linsend5,   "",      0,   255,   0,      17   ) \
-	PARAM_ENTRY(CAT_LIN,     linsend6,   "",      0,   255,   0,      18   ) \
-	PARAM_ENTRY(CAT_LIN,     linsend7,   "",      0,   255,   0,      19   ) \
-	PARAM_ENTRY(CAT_LIN,	 linavail,   "",      0,     1,   0,      20   ) \
+    PARAM_ENTRY(CAT_LIN,     linbaud,  LINSPEED,  0,    1,    0,      209   ) \
+    PARAM_ENTRY(CAT_LIN,     linrxid,    "",      0,   62,    24,     210   ) \
+    PARAM_ENTRY(CAT_LIN,     lintxid,    "",      0,   62,    21,     211   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend0,   "",      0,   255,   0,      212   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend1,   "",      0,   255,   0,      213   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend2,   "",      0,   255,   0,      214   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend3,   "",      0,   255,   0,      215   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend4,   "",      0,   255,   0,      216   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend5,   "",      0,   255,   0,      217   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend6,   "",      0,   255,   0,      218   ) \
+	PARAM_ENTRY(CAT_LIN,     linsend7,   "",      0,   255,   0,      219   ) \
+    PARAM_ENTRY(CAT_LIN,     lindatalen, "",      0,   8,     8,      220   ) \
+    PARAM_ENTRY(CAT_LIN,     classicChksum,"",    0,   1,     0,      221   ) \
+    PARAM_ENTRY(CAT_LIN,     IDsweep,     "",     0,   1,     0,      222   ) \
 	VALUE_ENTRY(version,     VERSTR,  2001 ) \
-	VALUE_ENTRY(lindata0,    "",      30   ) \
-    VALUE_ENTRY(lindata1,    "",      31   ) \
-	VALUE_ENTRY(lindata2,    "",      32   ) \
-	VALUE_ENTRY(lindata3,    "",      33   ) \
-	VALUE_ENTRY(lindata4,    "",      34   ) \
-	VALUE_ENTRY(lindata5,    "",      35   ) \
-	VALUE_ENTRY(lindata6,    "",      36   ) \
-	VALUE_ENTRY(lindata7,    "",      37   ) \
-    VALUE_ENTRY(lasterr,     errorListString,  2002 ) \
-    VALUE_ENTRY(testain,     "dig",   2003 ) \
-    VALUE_ENTRY(cpuload,     "%",     2004 )
+	VALUE_ENTRY(lindata0,    "",      230   ) \
+    VALUE_ENTRY(lindata1,    "",      231   ) \
+	VALUE_ENTRY(lindata2,    "",      232   ) \
+	VALUE_ENTRY(lindata3,    "",      233   ) \
+	VALUE_ENTRY(lindata4,    "",      234   ) \
+	VALUE_ENTRY(lindata5,    "",      235   ) \
+	VALUE_ENTRY(lindata6,    "",      236   ) \
+	VALUE_ENTRY(lindata7,    "",      237   ) \
+	VALUE_ENTRY(linavail,    "",      238   ) \
+    VALUE_ENTRY(IDreturned,    "",      239   ) \
+    VALUE_ENTRY(lasterr,     errorListString,  2004 ) \
+    VALUE_ENTRY(testain,     "dig",   3003 ) \
+    VALUE_ENTRY(cpuload,     "%",     2063 )
 
 
 /***** Enum String definitions *****/
@@ -82,6 +86,7 @@
 #define CAT_COMM     "Communication"
 #define CAT_LIN      "Linbus"
 #define LINSPEED     "0=9600, 1=19200"
+#define LINLEN       "0=4, 1=8"
 #define VERSTR STRINGIFY(4=VER-Lin)
 
 /***** enums ******/
@@ -100,6 +105,7 @@ enum _modes
    MOD_RUN,
    MOD_LAST
 };
+
 
 //Generated enum-string for possible errors
 extern const char* errorListString;

@@ -49,8 +49,8 @@ void clock_setup(void)
    rcc_periph_clock_enable(RCC_GPIOB);
    rcc_periph_clock_enable(RCC_GPIOC);
    rcc_periph_clock_enable(RCC_GPIOD);
-   rcc_periph_clock_enable(RCC_USART1); // LIN bus
-   rcc_periph_clock_enable(RCC_USART3); // Terminal
+   rcc_periph_clock_enable(RCC_USART1);
+   rcc_periph_clock_enable(RCC_USART3);
    rcc_periph_clock_enable(RCC_TIM2); //Scheduler
    rcc_periph_clock_enable(RCC_TIM4); //Overcurrent / AUX PWM
    rcc_periph_clock_enable(RCC_DMA1);  //ADC, Encoder and UART receive
@@ -81,9 +81,9 @@ void write_bootloader_pininit()
    commands.pindef[0].port = GPIOC;
    commands.pindef[0].pin = GPIO13;
    commands.pindef[0].inout = PIN_OUT;
-   commands.pindef[0].level = 0;
+   commands.pindef[0].level = 1;
    commands.pindef[1].port = GPIOB;
-   commands.pindef[1].pin = GPIO9;
+   commands.pindef[1].pin = GPIO1 | GPIO2;
    commands.pindef[1].inout = PIN_OUT;
    commands.pindef[1].level = 0;
 
@@ -117,9 +117,9 @@ void nvic_setup(void)
 
 void rtc_setup()
 {
-   //Base clock is HSE/128 = 8MHz/128 = 62.5kHz
-   //62.5kHz / (624 + 1) = 100Hz
-   rtc_auto_awake(RCC_HSE, 624); //10ms tick
+   //Base clock is HSE/128 = 16MHz/128 = 1255kHz
+   //125kHz / (1249 + 1) = 100Hz
+   rtc_auto_awake(RCC_HSE, 1249); //10ms tick
    rtc_set_counter_val(0);
 }
 
@@ -159,6 +159,6 @@ void tim_setup()
    timer_enable_counter(OVER_CUR_TIMER);
 
    /** setup gpio */
-   gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO7 | GPIO8 | GPIO9);
+   //gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO7 | GPIO8 | GPIO9);
 }
 

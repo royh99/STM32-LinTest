@@ -13,9 +13,13 @@
     DIG_IO_ENTRY(led_out,     GPIOE, GPIO2,  PinMode::OUTPUT)      \
 	DIG_IO_ENTRY(led_out2,    GPIOA, GPIO5,  PinMode::OUTPUT)      \
 	DIG_IO_ENTRY(led_out3,    GPIOC, GPIO13, PinMode::OUTPUT)      \
-	DIG_IO_ENTRY(lin_cs,      GPIOA, GPIO8,  PinMode::OUTPUT)      \
-	DIG_IO_ENTRY(lin_nslp,    GPIOD, GPIO11, PinMode::OUTPUT)      \
-
+    DIG_IO_ENTRY(led,		  GPIOB, GPIO9,  PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(led_rd,	  GPIOC, GPIO13, PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(led_yl,	  GPIOA, GPIO1,  PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(led_gr,	  GPIOA, GPIO3,  PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(led_bl,	  GPIOA, GPIO6,  PinMode::OUTPUT)      \
+	DIG_IO_ENTRY(lin_nslp,    GPIOA, GPIO8,  PinMode::OUTPUT)      \
+ 
 #endif // PinMode_PRJ_H_INCLUDED
 
 
